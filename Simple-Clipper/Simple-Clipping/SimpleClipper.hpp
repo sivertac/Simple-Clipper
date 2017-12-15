@@ -2,6 +2,10 @@
 
 #pragma once
 
+#ifndef SimpleClipper_HEADER
+#define SimpleClipper_HEADER
+
+
 #include <memory>
 #include <vector>
 #include <list>
@@ -9,7 +13,7 @@
 
 #include <wykobi.hpp>
 
-namespace SimpleClipping {
+namespace SimpleClipper {
 	/*
 	Graph container
 	*/
@@ -131,3 +135,5 @@ namespace SimpleClipping {
 
 }
 
+
+#endif // !SimpleClipper_HEADER

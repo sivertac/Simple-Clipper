@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SimpleClipping.hpp">
+    <ClInclude Include="SimpleClipper.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
