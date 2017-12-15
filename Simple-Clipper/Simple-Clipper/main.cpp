@@ -4,11 +4,19 @@
 
 #include <wykobi.hpp>
 
+#include "SimpleClipper.hpp"
+
 int main() {
 
-	wykobi::point2d<float> p1 = wykobi::make_point(100.f, 100.f);
+	wykobi::polygon<float, 2> p1 = wykobi::make_polygon<float>(wykobi::make_triangle<float>(0, 0, 100, 0, 100, 100));
+	wykobi::polygon<float, 2> p2 = wykobi::make_polygon<float>(wykobi::make_rectangle<float>(0, 0, 100, 100));
 
-	std::cout << "Hello world\n";
+
+
+	SimpleClipper::Graph graph(p1, p2);
+
+	std::cout << graph.nodes.size();
+	
 
 
 

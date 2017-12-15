@@ -5,15 +5,19 @@
 #ifndef SimpleClipper_HEADER
 #define SimpleClipper_HEADER
 
-
 #include <memory>
 #include <vector>
 #include <list>
 #include <unordered_map>
+#include <algorithm>
 
 #include <wykobi.hpp>
 
 namespace SimpleClipper {
+	//Forward
+	//struct Graph;
+	//struct Graph::Node;
+
 	/*
 	Graph container
 	*/
@@ -29,13 +33,12 @@ namespace SimpleClipper {
 			void removeEdge(Node* e);				//remove edge from node
 		};
 		std::vector<std::unique_ptr<Node>> nodes;	//node container
-		std::vector<Graph::Node*> subject_path;		//subject path
-		std::vector<Graph::Node*> clip_path;		//clip path
-
+		typedef std::vector<Node*> Path;
+		Path subject_path;							//subject path
+		Path clip_path;								//clip path
 		Graph();
 		Graph(const Graph & graph);					//copy constuctor	GIVES ME WIERD RESULTS :'(
 		Graph(wykobi::polygon<float, 2> subject_poly, wykobi::polygon<float, 2> clip_polygon);	//make graph from a subject_poly and a clip_poly
-
 		Node* makeNode(wykobi::point2d<float> & p);	//make node in graph
 		void removeNode(Node* n);					//delete node (and all related out/in edges)
 		void clearVisited();						//set all visited vars to false
@@ -67,6 +70,9 @@ namespace SimpleClipper {
 	Remove hull from path
 	*/
 	std::vector<Path> removeHull(Path & path, Path & hull);
+	std::vector<Path> removeHull(Path & path, std::vector<Path> & hull_vec);
+	std::vector<wykobi::polygon<float, 2>> removeHull(wykobi::polygon<float, 2> & poly, wykobi::polygon<float, 2> & hull);
+	std::vector<wykobi::polygon<float, 2>> removeHull(wykobi::polygon<float, 2> & path, std::vector<wykobi::polygon<float, 2>> & hull_vec);
 
 	/*
 	Find hull
@@ -77,11 +83,6 @@ namespace SimpleClipper {
 	Traverse outside of graph
 	*/
 	Path traverseUnion(Graph & graph);
-
-	/*
-	Return vector of edges as segments from graph
-	*/
-	//std::vector<wykobi::segment<float, 2>> getWykobiSegmentsFromGraph(Graph & graph);
 
 	/*
 	Return wykobi polygon of path
