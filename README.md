@@ -1,4 +1,4 @@
-# Simple-Clipping
+# Simple-Clipper
 Simple library for clipping 2d polygons.
 
 # Dependencies
