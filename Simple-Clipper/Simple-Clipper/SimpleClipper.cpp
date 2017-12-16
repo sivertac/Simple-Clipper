@@ -17,7 +17,6 @@ SimpleClipper::Graph::Graph(const Graph & graph) {
 		node_map.emplace(std::pair<Node*, Node*>(origin_node, clone_node));
 	}
 	//copy edges
-	//for (auto & pair : node_map) {
 	for (auto & ptr : graph.nodes) {
 		//Node* origin_node = pair.first;
 		Node* origin_node = ptr.get();
@@ -53,7 +52,7 @@ SimpleClipper::Graph::Graph(wykobi::polygon<float, 2> subject_poly, wykobi::poly
 		poly1_path.push_back(this->makeNode(subject_poly[i]));
 	}
 	for (std::size_t i = 0; i < clip_poly.size(); ++i) {
-		auto it = std::find_if(poly1_path.begin(), poly1_path.end(), [&](Graph::Node* n1) { return n1->point == clip_poly[i]; });
+		auto it = std::find_if(poly1_path.begin(), poly1_path.end(), [&](Node* n1) { return n1->point == clip_poly[i]; });
 		if (it != poly1_path.end()) {
 			poly2_path.push_back((*it));
 		}
@@ -61,16 +60,16 @@ SimpleClipper::Graph::Graph(wykobi::polygon<float, 2> subject_poly, wykobi::poly
 			poly2_path.push_back(this->makeNode(clip_poly[i]));
 		}
 	}
-	std::vector<std::vector<Graph::Node*>> poly1_intersections(poly1_path.size());
-	std::vector<std::vector<Graph::Node*>> poly2_intersections(poly2_path.size());
+	std::vector<std::vector<Node*>> poly1_intersections(poly1_path.size());
+	std::vector<std::vector<Node*>> poly2_intersections(poly2_path.size());
 	//find
 	for (std::size_t i = 0; i < poly1_path.size(); ++i) {
-		Graph::Node* outer_node_a = poly1_path[i];
-		Graph::Node* outer_node_b = (i + 1 < poly1_path.size()) ? poly1_path[i + 1] : poly1_path[0];
+		Node* outer_node_a = poly1_path[i];
+		Node* outer_node_b = (i + 1 < poly1_path.size()) ? poly1_path[i + 1] : poly1_path[0];
 		wykobi::segment<float, 2> outer_segment = wykobi::make_segment(outer_node_a->point, outer_node_b->point);
 		for (std::size_t j = 0; j < poly2_path.size(); ++j) {
-			Graph::Node* inner_node_a = poly2_path[j];
-			Graph::Node* inner_node_b = (j + 1 < poly2_path.size()) ? poly2_path[j + 1] : poly2_path[0];
+			Node* inner_node_a = poly2_path[j];
+			Node* inner_node_b = (j + 1 < poly2_path.size()) ? poly2_path[j + 1] : poly2_path[0];
 			wykobi::segment<float, 2> inner_segment = wykobi::make_segment(inner_node_a->point, inner_node_b->point);
 			if (wykobi::intersect(outer_segment, inner_segment)) {
 				wykobi::point2d<float> intersection = wykobi::intersection_point(outer_segment, inner_segment);
@@ -85,7 +84,7 @@ SimpleClipper::Graph::Graph(wykobi::polygon<float, 2> subject_poly, wykobi::poly
 				}
 				else {
 					//add to intersecton vectors
-					Graph::Node* n = this->makeNode(intersection);
+					Node* n = this->makeNode(intersection);
 					poly1_intersections[i].push_back(n);
 					poly2_intersections[j].push_back(n);
 				}
@@ -96,25 +95,25 @@ SimpleClipper::Graph::Graph(wykobi::polygon<float, 2> subject_poly, wykobi::poly
 	poly1_path = insertNodesOnPath(poly1_path, poly1_intersections);
 	poly2_path = insertNodesOnPath(poly2_path, poly2_intersections);
 	//insert potential nodes that are "on" existing edges
-	std::vector<std::vector<Graph::Node*>> poly1_on_edge(poly1_path.size());
-	std::vector<std::vector<Graph::Node*>> poly2_on_edge(poly2_path.size());
+	std::vector<std::vector<Node*>> poly1_on_edge(poly1_path.size());
+	std::vector<std::vector<Node*>> poly2_on_edge(poly2_path.size());
 	for (std::size_t i = 0; i < poly1_path.size(); ++i) {
-		Graph::Node* outer_node_a = poly1_path[i];
-		Graph::Node* outer_node_b = (i + 1 < poly1_path.size()) ? poly1_path[i + 1] : poly1_path[0];
+		Node* outer_node_a = poly1_path[i];
+		Node* outer_node_b = (i + 1 < poly1_path.size()) ? poly1_path[i + 1] : poly1_path[0];
 		wykobi::segment<float, 2> outer_segment = wykobi::make_segment(outer_node_a->point, outer_node_b->point);
 		for (std::size_t j = 0; j < poly2_path.size(); ++j) {
-			Graph::Node* inner_node = poly2_path[j];
+			Node* inner_node = poly2_path[j];
 			if ((inner_node != outer_node_a) && (inner_node != outer_node_b) && wykobi::point_on_segment(inner_node->point, outer_segment)) {
 				poly1_on_edge[i].push_back(inner_node);
 			}
 		}
 	}
 	for (std::size_t i = 0; i < poly2_path.size(); ++i) {
-		Graph::Node* outer_node_a = poly2_path[i];
-		Graph::Node* outer_node_b = (i + 1 < poly2_path.size()) ? poly2_path[i + 1] : poly2_path[0];
+		Node* outer_node_a = poly2_path[i];
+		Node* outer_node_b = (i + 1 < poly2_path.size()) ? poly2_path[i + 1] : poly2_path[0];
 		wykobi::segment<float, 2> outer_segment = wykobi::make_segment(outer_node_a->point, outer_node_b->point);
 		for (std::size_t j = 0; j < poly1_path.size(); ++j) {
-			Graph::Node* inner_node = poly1_path[j];
+			Node* inner_node = poly1_path[j];
 			if ((inner_node != outer_node_a) && (inner_node != outer_node_b) && wykobi::point_on_segment(inner_node->point, outer_segment)) {
 				poly2_on_edge[i].push_back(inner_node);
 			}
@@ -129,15 +128,15 @@ SimpleClipper::Graph::Graph(wykobi::polygon<float, 2> subject_poly, wykobi::poly
 	this->subject_path = poly1_path;
 	this->clip_path = poly2_path;
 	//mark nodes after what path they're part of
-	for (Graph::Node* n : this->subject_path) {
+	for (Node* n : this->subject_path) {
 		n->is_subject_path = true;
 	}
-	for (Graph::Node* n : this->clip_path) {
+	for (Node* n : this->clip_path) {
 		n->is_clip_path = true;
 	}
 }
 
-SimpleClipper::Graph::Node* SimpleClipper::Graph::makeNode(wykobi::point2d<float> & p) {
+SimpleClipper::Node* SimpleClipper::Graph::makeNode(wykobi::point2d<float> & p) {
 	Node n;
 	n.point = p;
 	nodes.push_back(std::unique_ptr<Node>(new Node(n)));
@@ -163,13 +162,13 @@ void SimpleClipper::Graph::clearVisited() {
 
 void SimpleClipper::Graph::clearEdges() {
 	for (auto & n : nodes) {
-		for (Graph::Node* e : n->edges) {
+		for (Node* e : n->edges) {
 			n->removeEdge(e);
 		}
 	}
 }
 
-void SimpleClipper::Graph::Node::removeEdge(Node* e) {
+void SimpleClipper::Node::removeEdge(Node* e) {
 	auto it = std::find(edges.begin(), edges.end(), e);
 	if (it != edges.end()) {
 		edges.erase(it);
@@ -177,7 +176,7 @@ void SimpleClipper::Graph::Node::removeEdge(Node* e) {
 	}
 }
 
-void SimpleClipper::Graph::Node::addEdge(Node* e) {
+void SimpleClipper::Node::addEdge(Node* e) {
 	if (std::find(edges.begin(), edges.end(), e) == edges.end()) {
 		edges.push_back(e);
 		e->in_edges.push_back(this);
@@ -185,17 +184,17 @@ void SimpleClipper::Graph::Node::addEdge(Node* e) {
 }
 
 
-SimpleClipper::Path SimpleClipper::insertNodesOnPath(Path & path, std::vector<std::vector<Graph::Node*>> & nodes) {
+SimpleClipper::Path SimpleClipper::insertNodesOnPath(Path & path, std::vector<std::vector<Node*>> & nodes) {
 	Path out_path;
 	for (std::size_t i = 0; i < path.size(); ++i) {
 		out_path.push_back(path[i]);
 		if (!nodes[i].empty()) {
 			if (nodes[i].size() > 1) {
-				std::sort(nodes[i].begin(), nodes[i].end(), [&](Graph::Node* n1, Graph::Node* n2)
+				std::sort(nodes[i].begin(), nodes[i].end(), [&](Node* n1, Node* n2)
 				{ return (wykobi::distance(path[i]->point, n1->point) < wykobi::distance(path[i]->point, n2->point)); }
 				);
 			}
-			for (Graph::Node* n : nodes[i]) {
+			for (Node* n : nodes[i]) {
 				out_path.push_back(n);
 			}
 		}
@@ -206,8 +205,8 @@ SimpleClipper::Path SimpleClipper::insertNodesOnPath(Path & path, std::vector<st
 void SimpleClipper::insertPathToGraph(Path & path) {
 	Path::iterator it = path.begin();
 	while (it != path.end()) {
-		Graph::Node* outer_node_a = (*it);
-		Graph::Node* outer_node_b = (std::next(it) != path.end()) ? (*std::next(it)) : (*path.begin());
+		Node* outer_node_a = (*it);
+		Node* outer_node_b = (std::next(it) != path.end()) ? (*std::next(it)) : (*path.begin());
 		outer_node_a->addEdge(outer_node_b);
 		++it;
 	}
@@ -215,34 +214,34 @@ void SimpleClipper::insertPathToGraph(Path & path) {
 
 std::vector<SimpleClipper::Path> SimpleClipper::findHull(Graph & graph) {
 	//find all nodes with more then one edge
-	std::vector<Graph::Node*> outer_nodes = traverseUnion(graph);
-	std::vector<Graph::Node*> pending_nodes;
-	for (std::unique_ptr<Graph::Node> & n : graph.nodes) {
+	std::vector<Node*> outer_nodes = traverseUnion(graph);
+	std::vector<Node*> pending_nodes;
+	for (std::unique_ptr<Node> & n : graph.nodes) {
 		if (n->edges.size() > 1 && std::find(outer_nodes.begin(), outer_nodes.end(), n.get()) == outer_nodes.end()) {
 			pending_nodes.push_back(n.get());
 		}
 	}
-	std::vector<std::vector<Graph::Node*>> hull_vec;
+	std::vector<Path> hull_vec;
 	//for each edge of start node, go most clockwise until start node is reached (then we found hull), or until an already visited node is reached (then no hull)
-	for (Graph::Node* start_node : pending_nodes) {
+	for (Node* start_node : pending_nodes) {
 		if (start_node->visited) continue;
-		for (Graph::Node* current_branch : start_node->edges) {
+		for (Node* current_branch : start_node->edges) {
 			Path current_path;
-			Graph::Node* last_node = start_node;
-			Graph::Node* current_node = current_branch;
+			Node* last_node = start_node;
+			Node* current_node = current_branch;
 			current_path.push_back(start_node);
 			while (true) {
 				current_path.push_back(current_node);
 				current_node->visited = true;
-				Graph::Node* next_node = getClockwiseMost(last_node, current_node);
+				Node* next_node = getClockwiseMost(last_node, current_node);
 				if (next_node->visited) {
-					for (Graph::Node* n : current_path) {
+					for (Node* n : current_path) {
 						n->visited = false;
 					}
 					break;
 				}
 				else if (next_node == start_node) {
-					//for (Graph::Node* n : current_path) {
+					//for (Node* n : current_path) {
 					//
 					//}
 					hull_vec.push_back(current_path);
@@ -259,26 +258,26 @@ std::vector<SimpleClipper::Path> SimpleClipper::findHull(Graph & graph) {
 
 SimpleClipper::Path SimpleClipper::traverseUnion(Graph & graph) {
 	Path node_path;
-	Graph::Node* current_node = nullptr;
-	Graph::Node* next_node = nullptr;
-	Graph::Node* start_node = nullptr;
-	Graph::Node* prev_node = nullptr;
+	Node* current_node = nullptr;
+	Node* next_node = nullptr;
+	Node* start_node = nullptr;
+	Node* prev_node = nullptr;
 	wykobi::point2d<float> edge_point = wykobi::make_point<float>(wykobi::infinity<float>(), wykobi::infinity<float>());
 	float low_dist = wykobi::infinity<float>();
 	for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
-		Graph::Node* n = graph.nodes[i].get();
+		Node* n = graph.nodes[i].get();
 		if (n->point.x < edge_point.x) edge_point.x = n->point.x;
 		if (n->point.y < edge_point.y) edge_point.y = n->point.y;
 	}
 	for (std::size_t i = 0; i < graph.nodes.size(); ++i) {
-		Graph::Node* n = graph.nodes[i].get();
+		Node* n = graph.nodes[i].get();
 		float test_dist = wykobi::distance<float>(edge_point, n->point);
 		if (test_dist < low_dist) {
 			low_dist = test_dist;
 			start_node = n;
 		}
 	}
-	Graph::Node fake_node;
+	Node fake_node;
 	fake_node.point = start_node->point - wykobi::make_vector<float>(1.f, 0.f);
 	current_node = getClockwiseMost(&fake_node, start_node);
 	prev_node = start_node;
@@ -292,19 +291,19 @@ SimpleClipper::Path SimpleClipper::traverseUnion(Graph & graph) {
 	return node_path;
 }
 
-SimpleClipper::Graph::Node* SimpleClipper::getClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node) {
-	std::vector<Graph::Node*> edges = current_node->edges;
+SimpleClipper::Node* SimpleClipper::getClockwiseMost(Node* prev_node, Node* current_node) {
+	std::vector<Node*> edges = current_node->edges;
 	auto it = std::find(edges.begin(), edges.end(), prev_node);
 	if (it != edges.end()) edges.erase(it);
 	if (edges.empty()) return nullptr;
 	it = edges.begin();
 	wykobi::vector2d<float> current_dir = current_node->point - prev_node->point;
-	Graph::Node* next_node = (*it);
+	Node* next_node = (*it);
 	++it;
 	wykobi::vector2d<float> next_dir = next_node->point - current_node->point;
 	bool is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
 	while (it != edges.end()) {
-		Graph::Node* test_node = (*it);
+		Node* test_node = (*it);
 		wykobi::vector2d<float> test_dir = test_node->point - current_node->point;
 		if (is_current_convex) {
 			if (wykobi::dot_product(current_dir, perp(test_dir)) < 0 || wykobi::dot_product(next_dir, perp(test_dir)) < 0) {
@@ -325,19 +324,19 @@ SimpleClipper::Graph::Node* SimpleClipper::getClockwiseMost(Graph::Node* prev_no
 	return next_node;
 }
 
-SimpleClipper::Graph::Node* SimpleClipper::getCounterClockwiseMost(Graph::Node* prev_node, Graph::Node* current_node) {
-	std::vector<Graph::Node*> edges = current_node->edges;
+SimpleClipper::Node* SimpleClipper::getCounterClockwiseMost(Node* prev_node, Node* current_node) {
+	std::vector<Node*> edges = current_node->edges;
 	auto it = std::find(edges.begin(), edges.end(), prev_node);
 	if (it != edges.end()) edges.erase(it);
 	if (edges.empty()) return nullptr;
 	it = edges.begin();
 	wykobi::vector2d<float> current_dir = current_node->point - prev_node->point;
-	Graph::Node* next_node = (*it);
+	Node* next_node = (*it);
 	++it;
 	wykobi::vector2d<float> next_dir = next_node->point - current_node->point;
 	bool is_current_convex = (wykobi::dot_product(next_dir, perp(current_dir)) <= 0);
 	while (it != edges.end()) {
-		Graph::Node* test_node = (*it);
+		Node* test_node = (*it);
 		wykobi::vector2d<float> test_dir = test_node->point - current_node->point;
 		if (is_current_convex) {
 			if (wykobi::dot_product(current_dir, perp(test_dir)) > 0 && wykobi::dot_product(next_dir, perp(test_dir)) > 0) {
@@ -362,6 +361,11 @@ wykobi::vector2d<float> SimpleClipper::perp(wykobi::vector2d<float> & vector) {
 	return wykobi::make_vector<float>(vector.y, -vector.x);
 }
 
+wykobi::segment<float, 2> SimpleClipper::edge(Path & path, std::size_t index) {
+	auto pair = path.edge(index);
+	return wykobi::make_segment(pair.first->point, pair.second->point);
+}
+
 std::vector<SimpleClipper::Path> SimpleClipper::clipDifference(Graph & graph) {
 	Path & subject_path = graph.subject_path;
 	Path & clip_path = graph.clip_path;
@@ -370,7 +374,7 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipDifference(Graph & graph) {
 	//remove nodes from subject_path that are inside clip_path, but not part of clip_path
 	auto it = subject_path.begin();
 	while (it != subject_path.end()) {
-		Graph::Node* n = (*it);
+		Node* n = (*it);
 		if (!n->is_clip_path && wykobi::point_in_polygon(n->point, clip_path_poly)) {
 			it = subject_path.erase(it);
 			graph.removeNode(n);
@@ -382,7 +386,7 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipDifference(Graph & graph) {
 	//remove nodes from clip_path that are not inside subject_path, and are not part of subject_path
 	it = clip_path.begin();
 	while (it != clip_path.end()) {
-		Graph::Node* n = (*it);
+		Node* n = (*it);
 		if (!n->is_subject_path && !wykobi::point_in_polygon(n->point, subject_path_poly)) {
 			it = clip_path.erase(it);
 			graph.removeNode(n);
@@ -396,8 +400,8 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipDifference(Graph & graph) {
 	std::vector<Path> path_vec;
 	while (true) {
 		//find node with more then 2 out edges, and is not visited
-		Graph::Node* start_node = nullptr;
-		for (Graph::Node* n : clip_path) {
+		Node* start_node = nullptr;
+		for (Node* n : clip_path) {
 			if (n->edges.size() > 1 && !n->visited) {
 				start_node = n;
 				break;
@@ -408,9 +412,9 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipDifference(Graph & graph) {
 		Path search_path;
 		search_path.push_back(start_node);
 		//search until in_edges.size() > 1 then go in_edges back the other "way"
-		Graph::Node* current_node = start_node->edges.front();
-		Graph::Node* last_node = start_node;
-		Graph::Node* next_node = nullptr;
+		Node* current_node = start_node->edges.front();
+		Node* last_node = start_node;
+		Node* next_node = nullptr;
 		while (current_node->in_edges.size() == 1) {
 			search_path.push_back(current_node);
 			last_node = current_node;
@@ -438,7 +442,7 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipIntersection(Graph & graph) 
 	//remove nodes in subject_path that are not part of clip_path and are not inside clip_polygon
 	auto it = subject_path.begin();
 	while (it != subject_path.end()) {
-		Graph::Node* n = (*it);
+		Node* n = (*it);
 		if (!n->is_clip_path && !wykobi::point_in_polygon(n->point, clip_path_poly)) {
 			it = subject_path.erase(it);
 			graph.removeNode(n);
@@ -450,7 +454,7 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipIntersection(Graph & graph) 
 	//remove nodes in clip_path that are not part of subject_path and are not inside subject_polygon
 	it = clip_path.begin();
 	while (it != clip_path.end()) {
-		Graph::Node* n = (*it);
+		Node* n = (*it);
 		if (!n->is_subject_path && !wykobi::point_in_polygon(n->point, subject_path_poly)) {
 			it = clip_path.erase(it);
 			graph.removeNode(n);
@@ -460,21 +464,21 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipIntersection(Graph & graph) 
 		}
 	}
 	//from nodes that has >1 out_edges and 1 in_edge, remove all "outer edges(most counterclockwise or some shit)"
-	std::list<Graph::Node*> pending_nodes;
+	std::list<Node*> pending_nodes;
 	for (auto & ptr : graph.nodes) {
 		if (ptr->edges.size() > 1) {
 			pending_nodes.push_back(ptr.get());
 		}
 	}
 	while (!pending_nodes.empty()) {
-		Graph::Node* current_node = pending_nodes.front();
+		Node* current_node = pending_nodes.front();
 		pending_nodes.pop_front();
 		if (current_node->in_edges.size() > 1) {
 			pending_nodes.push_back(current_node);
 		}
 		else {
 			while (current_node->edges.size() > 1) {
-				Graph::Node* e = getClockwiseMost(current_node->in_edges.front(), current_node);
+				Node* e = getClockwiseMost(current_node->in_edges.front(), current_node);
 				current_node->removeEdge(e);
 			}
 		}
@@ -482,7 +486,7 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipIntersection(Graph & graph) 
 	//at this point all nodes should only have 1 out edge, and one in edge
 	//traverse all seperate paths (mark visited and stuff)
 	while (true) {
-		Graph::Node* start_node = nullptr;
+		Node* start_node = nullptr;
 		for (auto & ptr : graph.nodes) {
 			if (!ptr->visited) {
 				start_node = ptr.get();
@@ -491,7 +495,7 @@ std::vector<SimpleClipper::Path> SimpleClipper::clipIntersection(Graph & graph) 
 		}
 		if (start_node == nullptr) break;
 		Path current_path;
-		Graph::Node* current_node = start_node->edges.front();
+		Node* current_node = start_node->edges.front();
 		start_node->visited = true;
 		current_path.push_back(start_node);
 		while (current_node != start_node) {
@@ -518,7 +522,7 @@ std::vector<wykobi::polygon<float, 2>> SimpleClipper::clipIntersection(wykobi::p
 		return out_vec;
 	}
 	Graph graph(subject_poly, clip_poly);
-	std::vector<std::vector<Graph::Node*>> path_vec = clipIntersection(graph);
+	std::vector<Path> path_vec = clipIntersection(graph);
 	for (auto & p : path_vec) {
 		out_vec.push_back(pathToPolygon(p));
 	}
@@ -538,7 +542,7 @@ std::vector<wykobi::polygon<float, 2>> SimpleClipper::clipDifference(wykobi::pol
 		return out_vec;
 	}
 	Graph graph(subject_poly, clip_poly);
-	std::vector<std::vector<Graph::Node*>> path_vec = clipDifference(graph);
+	std::vector<Path> path_vec = clipDifference(graph);
 	for (auto & p : path_vec) {
 		out_vec.push_back(pathToPolygon(p));
 	}
@@ -585,13 +589,371 @@ std::vector<wykobi::polygon<float, 2>> SimpleClipper::clipUnion(wykobi::polygon<
 	}
 }
 
+std::pair<SimpleClipper::Node*, SimpleClipper::Node*> SimpleClipper::Path::edge(std::size_t index) {
+	std::size_t b = (index < this->size() - 1) ? index + 1 : 0;
+	return std::pair<Node*, Node*>(this->operator[](index), this->operator[](b));
+}
+
+bool SimpleClipper::isPolygonOverlapping(wykobi::polygon<float, 2> & poly1, wykobi::polygon<float, 2> & poly2) {
+	if (isPolygonInsidePolygon(poly1, poly2) || isPolygonInsidePolygon(poly2, poly1)) {
+		return true;
+	}
+	for (std::size_t i = 0; i < poly1.size(); ++i) {
+		wykobi::segment<float, 2> seg1 = wykobi::edge<float>(poly1, i);
+		for (std::size_t j = 0; j < poly2.size(); ++j) {
+			wykobi::segment<float, 2> seg2 = wykobi::edge<float>(poly2, j);
+			if (wykobi::intersect<float>(seg1, seg2)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool SimpleClipper::isPathOverlapping(Path & path1, Path & path2) {
+	if (isPathInsidePath(path1, path2) || isPathInsidePath(path2, path1)) {
+		return true;
+	}
+	for (std::size_t i = 0; i < path1.size(); ++i) {
+		wykobi::segment<float, 2> seg1 = edge(path1, i);
+		for (std::size_t j = 0; j < path2.size(); ++j) {
+			wykobi::segment<float, 2> seg2 = edge(path2, j);
+			if (wykobi::intersect<float>(seg1, seg2)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool SimpleClipper::isPathInsidePath(Path & subject, Path & outer) {
+	for (std::size_t i = 0; i < subject.size(); ++i) {
+		if (!isNodeInsidePath(subject[i], outer)) {
+			return false;
+		}
+	}	
+	for (std::size_t i = 0; i < outer.size(); ++i) {
+		wykobi::segment<float, 2> outer_seg = edge(outer, i);
+		for (std::size_t j = 0; j < subject.size(); j++) {
+			wykobi::segment<float, 2> subject_seg = edge(subject, j);
+			if (wykobi::intersect<float>(outer_seg, subject_seg)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool SimpleClipper::isPointInsidePath(wykobi::point2d<float> & point, Path & path) {
+	bool result = false;
+	if (path.size() < 3) return false;
+	std::size_t j = path.size() - 1;
+	float & px = point.x;
+	float & py = point.y;
+	for (std::size_t i = 0; i < path.size(); ++i)
+	{
+		if (
+			((path[i]->point.y <= py) && (py < path[j]->point.y)) || // an upward crossing
+			((path[j]->point.y <= py) && (py < path[i]->point.y))    // a downward crossing
+			)
+		{
+			/* compute the edge-ray intersect @ the x-coordinate */
+			if (px - path[i]->point.x < ((path[j]->point.x - path[i]->point.x) * (py - path[i]->point.y) / (path[j]->point.y - path[i]->point.y)))
+			{
+				result = !result;
+			}
+		}
+		j = i;
+	}
+	return result;
+}
+
+bool SimpleClipper::isNodeInsidePath(Node* n, Path & path) {
+	auto it = std::find_if(path.begin(), path.end(), [&](Node* p) {return p == n; });
+	if (it != path.end()) return false;
+	return isPointInsidePath(n->point, path);
+}
+
+bool SimpleClipper::isPolygonInsidePolygon(wykobi::polygon<float, 2> & subject, wykobi::polygon<float, 2> & outer) {
+	for (std::size_t i = 0; i < subject.size(); i++) {
+		if (!wykobi::point_in_polygon<float>(subject[i], outer)) {
+			return false;
+		}
+	}
+	for (std::size_t i = 0; i < outer.size(); i++) {
+		wykobi::segment<float, 2> outer_seg = wykobi::edge<float>(outer, i);
+		for (std::size_t j = 0; j < subject.size(); j++) {
+			wykobi::segment<float, 2> subject_seg = wykobi::edge<float>(subject, j);
+			if (wykobi::intersect<float>(outer_seg, subject_seg)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 wykobi::polygon<float, 2> SimpleClipper::pathToPolygon(Path & path) {
 	wykobi::polygon<float, 2> poly;
 	poly.reserve(path.size());
-	for (Graph::Node* n : path) {
+	for (Node* n : path) {
 		poly.push_back(n->point);
 	}
 	return poly;
+}
+
+std::vector<wykobi::polygon<float, 2>> SimpleClipper::removeHull(wykobi::polygon<float, 2> & polygon, wykobi::polygon<float, 2> & hull) {
+	std::vector<wykobi::polygon<float, 2>> out_polygons;
+	//check if hull is inside polygon
+	if (!isPolygonInsidePolygon(hull, polygon)) {
+		//if this then hull is not inside polygon.
+		out_polygons.push_back(polygon);
+		return out_polygons;
+	}
+	//find two independent segments that go from hull to segment from existing verticies.
+	int seg1_hull_side;
+	int seg1_polygon_side;
+	wykobi::segment<float, 2> seg1;
+	bool solution = false;
+	for (int i = 0; i < polygon.size(); i++) {
+		for (int j = 0; j < hull.size(); j++) {
+			//if this then segment is legal
+			if (!isSegmentFromPolygonSelfIntersecting(polygon, i, hull[j]) &&
+				!isSegmentFromPolygonSelfIntersecting(hull, j, polygon[i]))
+			{
+				seg1_hull_side = j;
+				seg1_polygon_side = i;
+				seg1 = wykobi::make_segment<float>(polygon[seg1_polygon_side], hull[seg1_hull_side]);
+				solution = true;
+				break;
+			}
+		}
+		if (solution) break;
+	}
+	int seg2_hull_side;
+	int seg2_polygon_side;
+	wykobi::segment<float, 2> seg2;
+	solution = false;
+	for (int i = 0; i < polygon.size(); i++) {
+		if (i == seg1_polygon_side) continue;
+		for (int j = 0; j < hull.size(); j++) {
+			if (j == seg1_hull_side) continue;
+			//if this then segment is legal
+			if (!isSegmentFromPolygonSelfIntersecting(polygon, i, hull[j]) &&
+				!isSegmentFromPolygonSelfIntersecting(hull, j, polygon[i]) &&
+				!wykobi::intersect<float>(seg1, wykobi::make_segment<float>(polygon[i], hull[j])))
+			{
+				seg2_hull_side = j;
+				seg2_polygon_side = i;
+				seg2 = wykobi::make_segment<float>(polygon[seg2_polygon_side], hull[seg2_hull_side]);
+				solution = true;
+				break;
+			}
+		}
+		if (solution) break;
+	}
+	//Divide polygon in to 2 polygons at seg1 and seg2
+	out_polygons.reserve(2);
+	{
+		int i;
+		int stage;
+		wykobi::polygon<float, 2> forward_forward;
+		wykobi::polygon<float, 2> forward_backward;
+		wykobi::polygon<float, 2> backward_forward;
+		wykobi::polygon<float, 2> backward_backward;
+		i = seg1_polygon_side;
+		stage = 0;
+		//forward -> forward
+		while (true) {
+			if (stage == 0) {
+				if (i == polygon.size()) i = 0;
+				forward_forward.push_back(polygon[i]);
+				if (i == seg2_polygon_side) {
+					stage = 1;
+					i = seg2_hull_side;
+				}
+				else {
+					i++;
+				}
+			}
+			else if (stage == 1) {
+				if (i == hull.size()) i = 0;
+				forward_forward.push_back(hull[i]);
+				if (i == seg1_hull_side) {
+					break;
+				}
+				else {
+					i++;
+				}
+			}
+		}
+		//forward -> backward
+		i = seg1_polygon_side;
+		stage = 0;
+		while (true) {
+			if (stage == 0) {
+				if (i == polygon.size()) i = 0;
+				forward_backward.push_back(polygon[i]);
+				if (i == seg2_polygon_side) {
+					stage = 1;
+					i = seg2_hull_side;
+				}
+				else {
+					i++;
+				}
+			}
+			else if (stage == 1) {
+				if (i == -1) i = hull.size() - 1;
+				forward_backward.push_back(hull[i]);
+				if (i == seg1_hull_side) {
+					break;
+				}
+				else {
+					i--;
+				}
+			}
+		}
+		//backward -> forward
+		i = seg1_polygon_side;
+		stage = 0;
+		while (true) {
+			if (stage == 0) {
+				if (i == -1) i = polygon.size() - 1;
+				backward_forward.push_back(polygon[i]);
+				if (i == seg2_polygon_side) {
+					stage = 1;
+					i = seg2_hull_side;
+				}
+				else {
+					i--;
+				}
+			}
+			else if (stage == 1) {
+				if (i == hull.size()) i = 0;
+				backward_forward.push_back(hull[i]);
+				if (i == seg1_hull_side) {
+					break;
+				}
+				else {
+					i++;
+				}
+			}
+		}
+		//backward -> backward
+		i = seg1_polygon_side;
+		stage = 0;
+		while (true) {
+			if (stage == 0) {
+				if (i == -1) i = polygon.size() - 1;
+				backward_backward.push_back(polygon[i]);
+				if (i == seg2_polygon_side) {
+					stage = 1;
+					i = seg2_hull_side;
+				}
+				else {
+					i--;
+				}
+			}
+			else if (stage == 1) {
+				if (i == -1) i = hull.size() - 1;
+				backward_backward.push_back(hull[i]);
+				if (i == seg1_hull_side) {
+					break;
+				}
+				else {
+					i--;
+				}
+			}
+		}
+		if (wykobi::area<float>(forward_forward) < wykobi::area<float>(forward_backward)) {
+			out_polygons.push_back(forward_forward);
+		}
+		else {
+			out_polygons.push_back(forward_backward);
+		}
+		if (wykobi::area<float>(backward_forward) < wykobi::area<float>(backward_backward)) {
+			out_polygons.push_back(backward_forward);
+		}
+		else {
+			out_polygons.push_back(backward_backward);
+		}
+	}
+	return out_polygons;
+}
+
+std::vector<wykobi::polygon<float, 2>> SimpleClipper::removeHull(wykobi::polygon<float, 2> & poly, std::vector<wykobi::polygon<float, 2>> & hull_vec) {
+	std::list<wykobi::polygon<float, 2>> poly_list;
+	poly_list.push_back(poly);
+	for (wykobi::polygon<float, 2> & hull : hull_vec) {
+		bool hull_found = false;
+		for (auto it = poly_list.begin(); it != poly_list.end(); ++it) {
+			wykobi::polygon<float, 2> & p = (*it);
+			if (isPolygonInsidePolygon(hull, p)) {
+				auto temp = removeHull(p, hull);
+				poly_list.erase(it);
+				poly_list.insert(poly_list.end(), temp.begin(), temp.end());
+				hull_found = true;
+				break;
+			}
+		}
+		if (!hull_found) {
+			std::vector<wykobi::polygon<float, 2>> overlapping_poly_1;
+			std::vector<wykobi::polygon<float, 2>> overlapping_poly_2;
+			auto it = poly_list.begin();
+			while (it != poly_list.end()) {
+				wykobi::polygon<float, 2> & p = (*it);
+				if (isPolygonOverlapping(p, hull)) {
+					overlapping_poly_1.push_back(p);
+					it = poly_list.erase(it);
+				}
+				else {
+					++it;
+				}
+			}
+			for (wykobi::polygon<float, 2> & p : overlapping_poly_1) {
+				auto temp = clipDifference(p, hull);
+				overlapping_poly_2.insert(overlapping_poly_2.end(), temp.begin(), temp.end());
+			}
+			poly_list.insert(poly_list.begin(), overlapping_poly_2.begin(), overlapping_poly_2.end());
+		}
+	}
+	std::vector<wykobi::polygon<float, 2>> out_vec;
+	out_vec.insert(out_vec.end(), poly_list.begin(), poly_list.end());
+	return out_vec;
+}
+
+bool SimpleClipper::isSegmentFromPolygonSelfIntersecting(wykobi::polygon<float, 2> & polygon, std::size_t index, wykobi::point2d<float> point) {
+	wykobi::segment<float, 2> segment = wykobi::make_segment<float>(polygon[index], point);
+	std::size_t not_test1 = index;
+	std::size_t not_test2 = index - 1;
+	if (not_test2 == -1) not_test2 = polygon.size() - 1;
+	wykobi::segment<float, 2> t_seg_1 = wykobi::edge<float>(polygon, not_test1);
+	wykobi::segment<float, 2> t_seg_2 = wykobi::edge<float>(polygon, not_test2);
+	if (isSegmentPointsEqual(segment, t_seg_1) || isSegmentPointsEqual(segment, t_seg_2)) {
+		return true;
+	}
+	if (wykobi::point_on_segment<float>(point, t_seg_1) || wykobi::point_on_segment<float>(point, t_seg_2)) {
+		return true;
+	}
+	for (std::size_t i = 0; i < polygon.size(); i++) {
+		if (i == not_test1 || i == not_test2) {
+			continue;
+		}
+		else {
+			if (wykobi::intersect<float>(segment, wykobi::edge<float>(polygon, i))) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool SimpleClipper::isSegmentPointsEqual(wykobi::segment<float, 2> & seg1, wykobi::segment<float, 2> & seg2) {
+	if ((seg1[0] == seg2[0] && seg1[1] == seg2[1]) || (seg1[0] == seg2[1] && seg1[1] == seg2[0])) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 //end
