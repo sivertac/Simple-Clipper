@@ -33,7 +33,6 @@ namespace SimpleClipper {
 	*/
 	struct Path : public std::vector<Node*> {
 		std::vector<Path> hulls;	//vector containing paths to hulls
-
 		std::pair<Node*, Node*> edge(std::size_t index);	//return 2 nodes makeing a segment at index
 	};
 

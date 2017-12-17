@@ -214,7 +214,7 @@ void SimpleClipper::insertPathToGraph(Path & path) {
 
 std::vector<SimpleClipper::Path> SimpleClipper::findHull(Graph & graph) {
 	//find all nodes with more then one edge
-	std::vector<Node*> outer_nodes = traverseUnion(graph);
+	Path outer_nodes = traverseUnion(graph);
 	std::vector<Node*> pending_nodes;
 	for (std::unique_ptr<Node> & n : graph.nodes) {
 		if (n->edges.size() > 1 && std::find(outer_nodes.begin(), outer_nodes.end(), n.get()) == outer_nodes.end()) {
@@ -288,6 +288,9 @@ SimpleClipper::Path SimpleClipper::traverseUnion(Graph & graph) {
 		prev_node = current_node;
 		current_node = next_node;
 	}
+	
+	//node_path.hulls = findHull(graph);
+
 	return node_path;
 }
 

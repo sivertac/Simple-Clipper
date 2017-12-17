@@ -13,10 +13,12 @@ int main() {
 
 
 
-	SimpleClipper::Graph graph(p1, p2);
+	auto polygons = SimpleClipper::clipUnion(p1, p2);
 
-	std::cout << graph.nodes.size();
-	
+
+
+	std::cout << polygons.size() << "\n";
+	std::cout << polygons.front().size() << "\n";
 
 
 
