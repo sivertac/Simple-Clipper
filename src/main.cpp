@@ -37,6 +37,8 @@ int main() {
     auto polygons = SimpleClipper::clipUnion(p1, p2);
 
     writePolygonsAsPythonList(std::cout, polygons);
+    std::cout << "\n";
+    writePolygonsAsPythonList(std::cout, polygons);
 
     return EXIT_SUCCESS;
 }
