@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(SimpleClipper VERSION 0.0.1 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Fetch dependencies
 include(ExternalProject)
 ExternalProject_Add(
